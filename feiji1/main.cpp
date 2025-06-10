@@ -1,213 +1,144 @@
-//
-// Created by DELL on 2023/6/5.
-//
-// main.cpp
-#include<iostream>
-#include<stdlib.h>
-#include<conio.h>
-#include<Windows.h>
-#include<iomanip>
+#include <iostream>
+#include <stdlib.h>
+#include <conio.h>
+#include <Windows.h>
+#include <iomanip>
+
 using namespace std;
 
-int playerX, playerY;
-int bulletX, bulletY;
-int enemyBulletX, enemyBulletY;
-int enemyX, enemyY;
-int gameHeight, gameWidth;
-int gameScore = 0;
-int enemyCount = 50;
-bool continueGame = 1;
+int player_X, player_Y;
+int bullet_X, bullet_Y;
+int enemyBullet_X, enemyBullet_Y;
+int enemy_X, enemy_Y;
+int Height, Width;
+int Score = 0;
+int enemy_Count = 60;
+bool cont = 1;
 
-void moveCursorTo(int x, int y)
-{
-    COORD pos = { x,y };
+void moveTo(int x, int y) {
+    COORD pos = { x, y };
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleCursorPosition(hOut, pos);
 }
-void hideCursor()
-{
-    CONSOLE_CURSOR_INFO cursor_info = { 1,0 };
+
+void hideCur() {
+    CONSOLE_CURSOR_INFO cursor_info = { 1, 0 };
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
 }
-void initData()
-{
-    gameHeight = 35;
-    gameWidth = 55;
-    playerX = gameHeight / 2;
-    playerY = gameWidth / 2;
-    bulletX = -1;
-    bulletY = playerY+1;
-    enemyX = 0;
-    enemyY = gameWidth / 2;
-    enemyBulletX = enemyX+1;
-    enemyBulletY = enemyY+1;
-    hideCursor();
+
+void init() {
+    Height = 35;
+    Width = 55;
+    player_X = Height / 2;
+    player_Y = Width / 2;
+    bullet_X = -1;
+    bullet_Y = player_Y + 1;
+    enemy_X = 0;
+    enemy_Y = Width / 2;
+    enemyBullet_X = enemy_X + 1;
+    enemyBullet_Y = enemy_Y + 1;
+    hideCur();
 }
 
-void display()
-{
+string symbolAt(int i, int j) {
+    if ((i == player_X) && (j == player_Y))
+        return "/=\\";
+    if ((i == player_X + 1) && (j == player_Y - 1))
+        return "<<*>>";
+    if ((i == player_X + 2) && (j == player_Y))
+        return "* *";
+    if ((i == enemy_X) && (j == enemy_Y))
+        return "\\+/";
+    if ((i == enemy_X + 1) && (j == enemy_Y + 1))
+        return "|";
+    if ((i == enemyBullet_X) && (j == enemyBullet_Y))
+        return "|";
+    if ((i == bullet_X) && (j == bullet_Y))
+        return "|";
+    return " ";
+}
+
+void show() {
     system("cls");
-    int i, j;
-    moveCursorTo(0, 0);
-    for (i = 0; i < gameHeight; i++)
-    {
-        for (j = 0; j < gameWidth; j++)
-        {
-            if ((i == playerX) && (j == playerY))
-            {
-                cout << "/=\\";
-            }
-            else if ((i == playerX + 1) && (j == playerY-1))
-            {
-                cout <<"<<*>>";
-            }
-            else if ((i == playerX + 2) && (j == playerY))
-            {
-                cout << "* *";
-            }
-            else if ((i == enemyX) && (j == enemyY))
-            {
-                cout << "\\+/";
-            }
-            else if ((i == enemyX + 1) && (j == enemyY + 1))
-            {
-                cout << "|";
-            }
-            else if ((i == enemyBulletX) && (j == enemyBulletY))
-            {
-                cout << "|";
-            }
-            else if ((i == bulletX) && (j == bulletY))
-            {
-                cout << "|";
-            }
-            else cout << " ";
+    moveTo(0, 0);
+    for (int i = 0; i < Height; i++) {
+        for (int j = 0; j < Width; j++) {
+            cout << symbolAt(i, j);
         }
         cout << "\n";
     }
-    cout << "Score: " << gameScore;
+    cout << "Score: " << Score;
 }
-void updateWithoutInput()
-{
-    if ((bulletX == enemyX) && (bulletY == enemyY))
-    {
-        gameScore++;
-        enemyCount--;
-        enemyX = 0;
-        enemyY = rand() % gameWidth;
-        bulletX = -1;
+
+void update() {
+    if ((bullet_X == enemy_X) && (bullet_Y == enemy_Y)) {
+        Score++;
+        enemy_Count--;
+        enemy_X = 0;
+        enemy_Y = rand() % Width;
+        bullet_X = -1;
     }
-    if ((enemyBulletX == playerX) && (enemyBulletY == playerY))
-    {
-        gameScore--;
-        if (gameScore == 0) continueGame = 0;
-        enemyBulletX = enemyX + 1;
-        enemyBulletY = enemyY+1;
+
+    if ((enemyBullet_X == player_X) && (enemyBullet_Y == player_Y)) {
+        Score--;
+        if (Score <= 0) cont = 0;
+        enemyBullet_X = enemy_X + 1;
+        enemyBullet_Y = enemy_Y + 1;
     }
+
     static int fallSpeed = 0;
     static int enemyBulletSpeed = 0;
-    if (bulletX > -1) bulletX--;
-    if (fallSpeed < 20)
-    {
+
+    if (bullet_X > -1) bullet_X--;
+
+    if (fallSpeed < 20) {
         fallSpeed++;
-    }
-    if (enemyBulletSpeed < 3)
-    {
-        enemyBulletSpeed++;
-    }
-    if (enemyX > gameHeight)
-    {
-        enemyX = 0;
-        enemyY = rand() % gameWidth;
-    }
-    if (fallSpeed == 20)
-    {
-        enemyX++;
+    } else {
+        enemy_X++;
         fallSpeed = 0;
     }
-    if (enemyBulletSpeed == 3)
-    {
-        enemyBulletX++;
-        if (enemyBulletX > playerX)
-        {
-            enemyBulletX = enemyX + 1;
-            enemyBulletY = enemyY + 1;
+
+    if (enemyBulletSpeed < 3) {
+        enemyBulletSpeed++;
+    } else {
+        enemyBullet_X++;
+        if (enemyBullet_X > player_X) {
+            enemyBullet_X = enemy_X + 1;
+            enemyBullet_Y = enemy_Y + 1;
         }
         enemyBulletSpeed = 0;
     }
-}
-void updateWithInput()
-{
-    char userInput;
 
-    if (_kbhit())
-    {
-        userInput = _getch();
-        if (userInput == 's') playerX++;
-        if (userInput == 'w') playerX--;
-        if (userInput == 'a') playerY--;
-        if (userInput == 'd') playerY++;
-        if (userInput == ' ')
-        {
-            bulletX = playerX - 1;
-            bulletY = playerY;
+    if (enemy_X > Height) {
+        enemy_X = 0;
+        enemy_Y = rand() % Width;
+    }
+}
+
+void input() {
+    if (_kbhit()) {
+        char ch = _getch();
+        if (ch == 'w') player_X--;
+        if (ch == 's') player_X++;
+        if (ch == 'a') player_Y--;
+        if (ch == 'd') player_Y++;
+        if (ch == ' ') {
+            bullet_X = player_X - 1;
+            bullet_Y = player_Y;
         }
     }
 }
 
-void display()
-{
+int main() {
+    init();
+    while (enemy_Count > 0) {
+        show();
+        update();
+        if (!cont) break;
+        input();
+        Sleep(50);
+    }
     system("cls");
-    int i, j;
-    moveCursorTo(0, 0);
-    for (i = 0; i < gameHeight; i++)
-    {
-        for (j = 0; j < gameWidth; j++)
-        {
-            if ((i == playerX) && (j == playerY))
-            {
-                cout << "/=\\";
-            }
-            else if ((i == playerX + 1) && (j == playerY-1))
-            {
-                cout <<"<<*>>";
-            }
-            else if ((i == playerX + 2) && (j == playerY))
-            {
-                cout << "* *";
-            }
-            else if ((i == enemyX) && (j == enemyY))
-            {
-                cout << "\\+/";
-            }
-            else if ((i == enemyX + 1) && (j == enemyY + 1))
-            {
-                cout << "|";
-            }
-            else if ((i == enemyBulletX) && (j == enemyBulletY))
-            {
-                cout << "|";
-            }
-            else if ((i == bulletX) && (j == bulletY))
-            {
-                cout << "|";
-            }
-            else cout << " ";
-        }
-        cout << "\n";
-    }
-    cout << "Score: " << gameScore;
-}
-int main()
-{
-    initData();
-    while (enemyCount != 0)
-    {
-        display();
-        updateWithoutInput();
-        if (continueGame == 0) break;
-        updateWithInput();
-    }
-
+    cout << "Game Over! Final Score: " << Score << endl;
     return 0;
 }
